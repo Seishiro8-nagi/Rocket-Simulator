@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Module 1: Rocketry, Forces &amp; Orbital Motion (3D)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#0b1020;--pan:#141b33;--ln:#2a3560;--tx:#e8ecff;--mu:#9aa6d6;--ac:#5ab0ff;--ok:#4ade80;--bad:#f87171;--warn:#fbbf24;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#eef2fb;--pan:#fff;--ln:#c9d2ee;--tx:#14204a;--mu:#51608f}}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--ln);background:var(--pan)}
+h1{font-size:15px;margin:0;flex:1;min-width:180px}
+.seg{display:flex;border:1px solid var(--ln);border-radius:999px;overflow:hidden}
+.seg button{background:none;border:0;color:var(--mu);padding:7px 14px;cursor:pointer;font-weight:600}
+.seg button.on{background:var(--ac);color:#04122b}
+#mission{flex-basis:100%;font-size:13px;color:var(--mu)}#mission b{color:var(--tx)}#mission.done b{color:var(--ok)}
+main{flex:1;display:grid;grid-template-columns:1fr 330px;min-height:0}
+#stage{position:relative;min-height:0;overflow:hidden}canvas#c{width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+#bar{position:absolute;left:8px;right:8px;bottom:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+button.b,select,label.t{background:var(--pan);color:var(--tx);border:1px solid var(--ln);border-radius:8px;padding:7px 11px;font:inherit;cursor:pointer}
+button.go{background:var(--ok);color:#04210f;font-weight:700;border-color:var(--ok)}button.go.stop{background:var(--bad);border-color:var(--bad);color:#2b0505}
+#stage .lbl{position:absolute;font:600 11px system-ui;pointer-events:none;text-shadow:0 1px 3px #000;white-space:nowrap;display:none}
+#nav{display:flex;align-items:stretch;gap:2px;padding:0 10px;background:var(--bg);border-bottom:1px solid var(--ln);overflow-x:auto;white-space:nowrap}
+#nav .br{font-weight:800;letter-spacing:.02em;padding:10px 14px 10px 4px;color:var(--ac);display:flex;align-items:center}
+#nav button.tab{background:none;border:0;border-bottom:3px solid transparent;color:var(--mu);padding:10px 14px;font:inherit;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px}
+#nav button.tab:hover{color:var(--tx)}#nav button.tab[aria-selected=true]{color:var(--tx);border-bottom-color:var(--ac)}
+#nav .pill{font-size:10px;font-weight:700;border-radius:999px;padding:2px 7px;background:var(--ln);color:var(--mu)}
+#nav button.tab[aria-selected=true] .pill{background:var(--ok);color:#04210f}
+#soon{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:12px;z-index:10}#soon.on{display:flex}
+#soon .sc2{background:var(--pan);border:1px solid var(--ln);border-radius:14px;padding:22px;max-width:460px;width:100%;text-align:center}
+#soon .ico{font-size:40px}#soon h2{margin:6px 0 2px}#soon .tag{display:inline-block;margin:8px 0 12px;padding:4px 12px;border-radius:999px;background:var(--ac);color:#04122b;font-weight:700;font-size:12px}
+#soon p{color:var(--mu);margin:0 0 10px}#soon .std{font-size:12px;color:var(--mu);border-top:1px solid var(--ln);padding-top:10px;margin-top:10px;text-align:left}
+#hud{position:absolute;top:8px;left:8px;background:#0008;color:#fff;padding:6px 10px;border-radius:8px;font-size:13px;pointer-events:none}
+aside{overflow-y:auto;border-left:1px solid var(--ln);background:var(--pan);padding:10px}
+aside h3{margin:12px 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu)}aside h3:first-child{margin-top:0}
+.row{display:grid;grid-template-columns:62px 1fr 78px;gap:6px;align-items:center;margin:5px 0}.row input[type=range]{width:100%}
+.row input[type=number]{width:78px;background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:3px}
+.ps .row{grid-template-columns:62px 1fr}
+[data-mode=ps] .hon,[data-mode=hon] .ps{display:none!important}
+.bar{height:14px;background:var(--bg);border-radius:7px;overflow:hidden;margin:3px 0 8px}.bar i{display:block;height:100%;width:0;transition:width .1s}
+.tel{display:grid;grid-template-columns:1fr auto;gap:2px 8px;font-variant-numeric:tabular-nums;font-size:12.5px}.tel span:nth-child(odd){color:var(--mu)}
+canvas.g{width:100%;height:80px;background:var(--bg);border-radius:6px;margin-bottom:6px}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 4px 0 8px}
+#modal{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:12px;z-index:9}
+#modal.on{display:flex}#card{background:var(--pan);border:1px solid var(--ln);border-radius:12px;padding:16px;max-width:640px;width:100%;max-height:100%;overflow:auto}
+#card input,#card textarea{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--ln);border-radius:6px;padding:7px;font:inherit;margin:3px 0 8px}
+#card .f3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}table{width:100%;border-collapse:collapse;font-size:12px}td,th{border-bottom:1px solid var(--ln);padding:3px 5px;text-align:left}.sc{overflow-x:auto}
+@media(max-width:820px){main{grid-template-columns:1fr;grid-template-rows:55% 45%}aside{border-left:0;border-top:1px solid var(--ln)}}
+</style></head>
+<body data-mode="ps">
+<nav id="nav" role="tablist" aria-label="Curriculum modules"><span class="br">⚛ Physics Platform</span>
+<button class="tab" role="tab" aria-selected="true" data-i="0">1 · Forces &amp; Rocketry <span class="pill">Active</span></button>
+<button class="tab" role="tab" aria-selected="false" data-i="1">2 · Projectile Trajectories <span class="pill">Soon</span></button>
+<button class="tab" role="tab" aria-selected="false" data-i="2">3 · Energy Conservation <span class="pill">Soon</span></button>
+<button class="tab" role="tab" aria-selected="false" data-i="3">4 · Momentum &amp; Docking <span class="pill">Soon</span></button></nav>
+<div id="soon" role="dialog" aria-modal="true" aria-labelledby="sn"><div class="sc2"><div class="ico" id="si"></div><h2 id="sn"></h2><div class="tag">Coming Soon — Aligned with NGSS Standards</div><p id="sd"></p><div class="std" id="ss"></div><div style="margin-top:14px"><button class="b go" id="sx" style="background:var(--ac);border-color:var(--ac);color:#04122b">Back to Module 1</button></div></div></div>
+<header><h1>🚀 Module 1 · Rocketry, Forces &amp; Orbital Motion</h1>
+<div class="seg" id="seg"><button data-m="ps" class="on">Physical Science</button><button data-m="hon">Honors Physics</button></div>
+<div id="mission"></div></header>
+<main><div id="stage"><canvas id="c"></canvas><div id="hud"></div><span class="lbl" id="lT" style="color:#4ade80"></span><span class="lbl" id="lG" style="color:#60a5fa"></span><span class="lbl" id="lD" style="color:#f87171"></span><span class="lbl" id="lAp" style="color:#5ee0ff"></span><span class="lbl" id="lPe" style="color:#ffa040"></span>
+<div id="bar"><button class="b go" id="go">Launch (Space)</button><button class="b" id="rst">Reset (R)</button>
+<select id="warp" title="Time warp"><option value="1">1×</option><option value="2">2×</option><option value="5">5×</option><option value="10">10×</option><option value="25">25×</option></select>
+<label class="t"><input type="checkbox" id="vec" checked> Force vectors</label><label class="t"><input type="checkbox" id="az" checked> Auto-zoom</label>
+<button class="b" id="rep">📄 Lab Report</button></div></div>
+<aside>
+<h3>Rocket controls</h3>
+<div class="row"><span>Thrust</span><input type="range" id="th" min="300" max="1500" step="10"><input class="hon" type="number" id="thn" min="300" max="1500"></div>
+<div class="row"><span>Fuel</span><input type="range" id="fu" min="5000" max="80000" step="1000"><input class="hon" type="number" id="fun" min="5000" max="80000"></div>
+<div class="row"><span>Pitch</span><input type="range" id="pi" min="-10" max="100" step="1"><input class="hon" type="number" id="pin" min="-10" max="100"></div>
+<div style="font-size:12px;color:var(--mu)">Thrust in kN · fuel in kg · pitch in ° from straight up (0° = up, 90° = sideways). Use ← → to steer.</div>
+<h3>Energy</h3>
+<div>Kinetic <span id="kev" class="hon"></span></div><div class="bar"><i id="ke" style="background:#fb923c"></i></div>
+<div>Potential <span id="pev" class="hon"></span></div><div class="bar"><i id="pe" style="background:#38bdf8"></i></div>
+<div class="ps"><h3>Forces</h3><div class="leg"><i style="background:#4ade80"></i>Thrust<i style="background:#60a5fa"></i>Gravity<i style="background:#f87171"></i>Drag</div>
+<div id="hint" style="margin-top:8px"></div></div>
+<div class="hon"><h3>Telemetry</h3><div class="tel" id="tel"></div>
+<h3>Live graphs</h3><div style="font-size:11px;color:var(--mu)">Altitude (km)</div><canvas class="g" id="g1"></canvas><div style="font-size:11px;color:var(--mu)">Speed (m/s)</div><canvas class="g" id="g2"></canvas></div>
+</aside></main>
+<div id="modal"><div id="card"><h2 style="margin:0 0 8px">Lab Report</h2>
+<div style="font-size:12px;color:var(--mu);margin-bottom:8px">No login. Your info stays on this device and is only written into the file you export.</div>
+<div class="f3"><div>Name<input id="nm"></div><div>Teacher<input id="tc"></div><div>Class period<input id="pd"></div></div>
+<div class="sc"><table id="tt"></table></div>
+<div id="qs" style="margin-top:10px"></div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="b go" id="pdf">Export PDF</button><button class="b" id="csv">Export CSV</button><button class="b" id="cl">Close</button></div>
+<div id="msg" style="font-size:12px;margin-top:6px;color:var(--mu)"></div></div></div>
+<script>
+const R=6371000,GM=3.986004e14,G0=9.80665,ISP=380,DRY=5000,CD=.3,AR=10,DT=.05;
+const $=id=>document.getElementById(id);
+let mode='ps',P={thrust:900,fuel:50000,pitch:0},S,trials=[],done=false,parts=[],view={s:1e-3,px:0,py:0,az:true},F={T:0,Fg:0,D:0,fx:0,fy:0,dx:0,dy:1},hMaxKE=1,hMaxPE=1,orb=null;
+const cv=$('c');
+function ns(){return{x:0,y:R,vx:0,vy:0,fuel:P.fuel,t:0,burn:false,phase:'pad',maxAlt:0,maxV:0,trail:[],h:[],lt:0,lh:0,out:'',p0:P.pitch}}
+S=ns();
+function elems(){const r=Math.hypot(S.x,S.y),v2=S.vx*S.vx+S.vy*S.vy,h=S.x*S.vy-S.y*S.vx,eps=v2/2-GM/r;
+const ex=S.vy*h/GM-S.x/r,ey=-S.vx*h/GM-S.y/r,e=Math.hypot(ex,ey);let a=null,pe=null,ap=null;
+if(eps<0){a=-GM/(2*eps);pe=a*(1-e)-R;ap=a*(1+e)-R}return{r,e,a,pe,ap,h,w:Math.atan2(ey,ex),vc:Math.sqrt(GM/r),eps};}
+function step(dt){const r=Math.hypot(S.x,S.y),ux=S.x/r,uy=S.y/r,alt=r-R,m=DRY+S.fuel;let T=0;
+if(S.burn&&S.fuel>0){T=P.thrust*1000;const dm=T/(ISP*G0)*dt;if(dm>=S.fuel){T*=S.fuel/dm;S.fuel=0}else S.fuel-=dm}
+const p=P.pitch*Math.PI/180,ex=uy,ey=-ux,dx=ux*Math.cos(p)+ex*Math.sin(p),dy=uy*Math.cos(p)+ey*Math.sin(p);
+const Fg=GM*m/(r*r),v=Math.hypot(S.vx,S.vy),D=.5*1.225*Math.exp(-alt/8500)*v*v*CD*AR;
+let fx=T*dx-Fg*ux-(v>0?D*S.vx/v:0),fy=T*dy-Fg*uy-(v>0?D*S.vy/v:0);F={T,Fg,D,fx,fy,dx,dy,m};
+const vr=S.vx*ux+S.vy*uy;
+if(alt<=0&&fx*ux+fy*uy<=0&&vr<=.01){
+ if(S.phase==='flying'&&S.maxAlt>50){end(Math.hypot(S.vx,S.vy)<12?'Landed safely':'Crashed');return}
+ S.x=ux*R;S.y=uy*R;S.vx=S.vy=0;F.fx=F.fy=0;S.t+=dt;return}
+const ax=fx/m,ay=fy/m;S.vx+=ax*dt;S.vy+=ay*dt;S.x+=S.vx*dt;S.y+=S.vy*dt;S.t+=dt;
+const a2=Math.hypot(S.x,S.y)-R,sp=Math.hypot(S.vx,S.vy);if(a2>S.maxAlt)S.maxAlt=a2;if(sp>S.maxV)S.maxV=sp;
+if(S.t-S.lt>=.4){S.lt=S.t;S.trail.push([S.x,S.y]);if(S.trail.length>900)S.trail.shift()}
+if(S.t-S.lh>=.5){S.lh=S.t;S.h.push([S.t,a2/1000,sp]);if(S.h.length>700)S.h.shift()}
+const o=elems();if(mode==='ps'?S.maxAlt>=100000:(o.pe!==null&&o.pe>=150000)){if(!done){done=true;S.out='Mission complete'}}}
+function end(o){if(S.phase==='ended')return;S.phase='ended';S.burn=false;if(!done||!S.out)S.out=done?'Mission complete':o;S.fin=o;logTrial();syncGo()}
+function logTrial(){if(S.logged||S.phase==='pad'||S.maxAlt<50)return;S.logged=1;const o=elems();
+trials.push({n:trials.length+1,mode:mode==='ps'?'Physical Science':'Honors',thrust:P.thrust,fuel:S.fuelStart,pitch0:S.p0,pitch1:P.pitch,maxAlt:+(S.maxAlt/1000).toFixed(1),maxV:Math.round(S.maxV),peri:o.pe!==null?Math.round(o.pe/1000):'n/a',apo:o.ap!==null?Math.round(o.ap/1000):'n/a',t:Math.round(S.t),out:done?'Mission complete':(S.fin||'In flight')})}
+function reset(){logTrial();S=ns();S.fuelStart=P.fuel;done=false;parts=[];hMaxKE=hMaxPE=1;view.px=view.py=0;syncGo();ui()}
+function syncGo(){const b=$('go');b.textContent=S.burn?'Cut engine (Space)':'Launch (Space)';b.classList.toggle('stop',S.burn);if(S.phase!=='pad'&&!S.burn)b.textContent='Ignite (Space)';if(S.phase==='ended')b.textContent='Reset (R)'}
+function toggleBurn(){if(S.phase==='ended'){reset();return}if(S.phase==='pad'){S.phase='flying';S.fuelStart=P.fuel;S.p0=P.pitch}S.burn=!S.burn;syncGo()}
+$('go').onclick=toggleBurn;$('rst').onclick=reset;
+// controls
+function bind(k,r,n,lock){const a=$(r),b=$(n);const set=v=>{v=+v;P[k]=v;a.value=v;b.value=v;if(k==='fuel'&&S.phase==='pad'){S.fuel=v;S.fuelStart=v}};a.oninput=()=>set(a.value);b.onchange=()=>set(b.value);set(P[k])}
+bind('thrust','th','thn');bind('fuel','fu','fun');bind('pitch','pi','pin');
+function setMode(m){mode=m;document.body.dataset.mode=m;[...$('seg').children].forEach(b=>b.classList.toggle('on',b.dataset.m===m));$('vec').checked=m==='ps';ui();mis()}
+$('seg').onclick=e=>{if(e.target.dataset.m)setMode(e.target.dataset.m)};
+function mis(){const el=$('mission');el.classList.toggle('done',done);el.innerHTML=mode==='ps'?
+ (done?'<b>✅ Mission complete!</b> You reached 100 km. Try again with less fuel.':'<b>Mission:</b> reach 100 km altitude. Press Launch, then tilt the rocket with Pitch to build sideways speed.'):
+ (done?'<b>✅ Orbit achieved!</b> Periapsis above 150 km. Check eccentricity and orbital speed.':'<b>Mission:</b> reach a stable orbit (periapsis ≥ 150 km). Gravity-turn from 0° toward 90°, then cut and coast to apoapsis.')}
+addEventListener('keydown',e=>{if(e.target.matches('input,textarea,select')||e.target.closest('#nav,#soon'))return;
+ if(e.code==='Space'){e.preventDefault();toggleBurn()}else if(e.key==='r'||e.key==='R')reset();
+ else if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();const v=Math.max(-10,Math.min(100,P.pitch+(e.key==='ArrowRight'?1:-1)));P.pitch=v;$('pi').value=$('pin').value=v}});
+// ===== 3D viewport (Three.js) — physics above is unchanged =====
+const lerp=(a,b,t)=>a+(b-a)*t,YA=new THREE.Vector3(0,1,0),cs={az:.9,el:.1,d:140,tgt:140};let W=1,H=1,rr=null;
+try{rr=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});rr.autoClear=false;rr.setPixelRatio(Math.min(devicePixelRatio||1,1.5))}catch(e){$('hud').textContent='WebGL is not available on this device.'}
+const sc=new THREE.Scene(),bgS=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,1,1,1e8),bgCam=new THREE.PerspectiveCamera(50,1,1,5000);
+function fit(){const r=cv.getBoundingClientRect();W=Math.max(1,r.width);H=Math.max(1,r.height);if(rr)rr.setSize(W,H,false);cam.aspect=bgCam.aspect=W/H;cam.updateProjectionMatrix();bgCam.updateProjectionMatrix()}
+new ResizeObserver(fit).observe(cv);
+function glowTex(){const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d'),q=g.createRadialGradient(32,32,0,32,32,32);q.addColorStop(0,'rgba(255,255,255,1)');q.addColorStop(.3,'rgba(255,255,255,.5)');q.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=q;g.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)}
+const GT=glowTex();
+function earthTex(){const w=576,h=288,c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d'),im=g.createImageData(w,h),d=im.data;
+ for(let j=0;j<h;j++)for(let i=0;i<w;i++){const lo=i/w*6.2832,la=(.5-j/h)*3.1416,cl=Math.cos(la),x=cl*Math.cos(lo),y=Math.sin(la),z=cl*Math.sin(lo);
+  const n=Math.sin(x*3.1+1)*Math.sin(y*2.7+z*1.3)+.6*Math.sin(x*6.3+z*5.1+2)*Math.sin(y*5.7-x*2)+.35*Math.sin(z*11+y*9)*Math.sin(x*10+1.5);
+  let r,gg,b;if(Math.abs(la)>1.3){r=gg=b=235}else if(n>.15){const t=Math.min(1,(n-.15)*1.4);r=70+90*t;gg=135-25*t;b=60+25*t}else{r=14;gg=55+25*n;b=125+30*n}
+  if(i%24===0||j%24===0){r=r*.6+102;gg=gg*.6+102;b=b*.6+102}
+  const k=(j*w+i)*4;d[k]=r;d[k+1]=gg;d[k+2]=b;d[k+3]=255}
+ g.putImageData(im,0,0);const t=new THREE.CanvasTexture(c);t.anisotropy=2;return t}
+// Earth (floating origin: the rocket is always at the scene origin) + atmosphere halo + sun
+const earth=new THREE.Mesh(new THREE.SphereGeometry(1,96,64),new THREE.MeshLambertMaterial({map:earthTex()}));earth.rotation.x=1.08;earth.frustumCulled=false;sc.add(earth);
+const atm=new THREE.Mesh(new THREE.SphereGeometry(1,64,48),new THREE.ShaderMaterial({uniforms:{uF:{value:1}},side:THREE.BackSide,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,
+ vertexShader:'varying vec3 vN;varying vec3 vV;void main(){vN=normalize(normalMatrix*normal);vec4 m=modelViewMatrix*vec4(position,1.);vV=normalize(-m.xyz);gl_Position=projectionMatrix*m;}',
+ fragmentShader:'uniform float uF;varying vec3 vN;varying vec3 vV;void main(){float i=pow(clamp(-dot(vN,vV)*5.5,0.,1.),1.6);gl_FragColor=vec4(.3,.62,1.,1.)*i*1.4*uF;}'}));atm.frustumCulled=false;sc.add(atm);
+sc.add(new THREE.AmbientLight(0x7a88a8,.5));const sun=new THREE.DirectionalLight(0xfff0d8,1.3);sun.position.set(.6,.7,.4);sc.add(sun);
+// starfield (separate background pass)
+const sp=new Float32Array(5400);for(let i=0;i<1800;i++){const u=Math.random()*2-1,t=Math.random()*6.2832,q=Math.sqrt(1-u*u);sp[i*3]=q*Math.cos(t)*2000;sp[i*3+1]=u*2000;sp[i*3+2]=q*Math.sin(t)*2000}
+const stG=new THREE.BufferGeometry();stG.setAttribute('position',new THREE.BufferAttribute(sp,3));const stM=new THREE.PointsMaterial({color:0xffffff,size:2.2,sizeAttenuation:false,map:GT,transparent:true,depthWrite:false});bgS.add(new THREE.Points(stG,stM));
+// launch pad + local ground grid
+const pad=new THREE.Group();sc.add(pad);const bx=(w,h,d,c,x,y,z)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshLambertMaterial({color:c}));m.position.set(x,y,z);pad.add(m)};
+bx(70,1.2,70,0x6b7280,0,-22.6,0);bx(4,52,4,0xb45309,16,4,0);bx(12,2,2,0xb45309,10,12,0);bx(6,6,6,0x4b5563,-26,-19,12);
+const gridM=new THREE.GridHelper(4000,80,0x3fae7a,0x2a7a5a);gridM.position.y=-22.1;gridM.material.transparent=true;pad.add(gridM);
+const disc=new THREE.Mesh(new THREE.CircleGeometry(2000,48),new THREE.MeshBasicMaterial({color:0x1d4a34,transparent:true}));disc.rotation.x=-Math.PI/2;disc.position.y=-22.2;pad.add(disc);
+// rocket: 2 stages + interstage + fairing + fins + engines
+const rk=new THREE.Group(),L=c=>new THREE.MeshLambertMaterial({color:c});sc.add(rk);
+const cy=(a,b,h,y,c)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(a,b,h,20),L(c));m.position.y=y;rk.add(m)};
+cy(1.8,1.8,26,-9,0xf2f4f8);cy(1.85,1.85,3,-17,0xd9552b);cy(1.85,1.85,3,5.5,0x30343f);cy(1.5,1.5,11,12.5,0xe8ecf5);cy(0,1.5,8,22,0xe5484d);cy(.6,1.1,2.4,-23.2,0x20232b);
+for(let k=0;k<4;k++){const a=k*Math.PI/2+.78,m=new THREE.Mesh(new THREE.BoxGeometry(3,6,.3),L(0xd9552b));m.position.set(Math.cos(a)*2.9,-19,Math.sin(a)*2.9);m.rotation.y=-a;rk.add(m)}
+const win=new THREE.Mesh(new THREE.SphereGeometry(.7,10,8),new THREE.MeshBasicMaterial({color:0x7fd0ff}));win.position.set(0,12,1.45);rk.add(win);
+// flame plume (nested additive cones) + glow + light
+const fl=new THREE.Group();fl.position.y=-24.4;rk.add(fl);const cones=[];
+for(const [r,l,c,o] of [[1.5,20,0xfff3c4,.9],[2.4,34,0xffa640,.5],[3.6,50,0xff4a1c,.25]]){const g=new THREE.ConeGeometry(1,1,16,1,true);g.rotateX(Math.PI);g.translate(0,-.5,0);const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:o,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide}));m.userData={r,l};fl.add(m);cones.push(m)}
+const fg=new THREE.Sprite(new THREE.SpriteMaterial({map:GT,color:0xffb060,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));fg.scale.set(16,16,1);fl.add(fg);
+const plight=new THREE.PointLight(0xffaa55,0,260);plight.position.y=-28;rk.add(plight);
+// smoke trail (world-fixed puffs)
+const NS=260,sm={wx:new Float64Array(NS),wy:new Float64Array(NS),wz:new Float64Array(NS),age:new Float64Array(NS).fill(99),life:new Float64Array(NS),i:0,lx:null,ly:null};
+const smG=new THREE.BufferGeometry();smG.setAttribute('position',new THREE.BufferAttribute(new Float32Array(NS*3),3));smG.setAttribute('color',new THREE.BufferAttribute(new Float32Array(NS*3),3));
+const smP=new THREE.Points(smG,new THREE.PointsMaterial({size:16,map:GT,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));smP.frustumCulled=false;sc.add(smP);
+function emit(x,y){const k=sm.i++%NS;sm.wx[k]=x+(Math.random()-.5)*4;sm.wy[k]=y+(Math.random()-.5)*4;sm.wz[k]=(Math.random()-.5)*4;sm.age[k]=0;sm.life[k]=5+Math.random()*3}
+// orbit ring, flight trail, apo/peri markers
+const orbG=new THREE.BufferGeometry();orbG.setAttribute('position',new THREE.BufferAttribute(new Float32Array(181*3),3));
+const orbL=new THREE.Line(orbG,new THREE.LineBasicMaterial({color:0x7fd0ff,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false})),orbP=new THREE.Points(orbG,new THREE.PointsMaterial({color:0x7fd0ff,size:9,sizeAttenuation:false,map:GT,transparent:true,opacity:.55,blending:THREE.AdditiveBlending,depthWrite:false}));
+const trG=new THREE.BufferGeometry();trG.setAttribute('position',new THREE.BufferAttribute(new Float32Array(905*3),3));
+const trL=new THREE.Line(trG,new THREE.LineBasicMaterial({color:0xffc880,transparent:true,opacity:.9,blending:THREE.AdditiveBlending,depthWrite:false})),trP=new THREE.Points(trG,new THREE.PointsMaterial({color:0xff9a3c,size:7,sizeAttenuation:false,map:GT,transparent:true,opacity:.5,blending:THREE.AdditiveBlending,depthWrite:false}));
+const mk=c=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:GT,color:c,transparent:true,blending:THREE.AdditiveBlending,depthTest:false}));s.renderOrder=15;sc.add(s);return s},sAp=mk(0x5ee0ff),sPe=mk(0xffa040);
+for(const o of [orbL,orbP,trL,trP]){o.frustumCulled=false;sc.add(o)}
+// 3D force arrows
+function mkArrow(c){const g=new THREE.Group(),m=new THREE.MeshBasicMaterial({color:c,depthTest:false,transparent:true,opacity:.95}),sh=new THREE.Mesh(new THREE.CylinderGeometry(1,1,1,10).translate(0,.5,0),m),hd=new THREE.Mesh(new THREE.ConeGeometry(1,1,14).translate(0,.5,0),m);sh.renderOrder=hd.renderOrder=20;g.add(sh,hd);g.userData={sh,hd};sc.add(g);return g}
+const aT=mkArrow(0x4ade80),aG=mkArrow(0x60a5fa),aD=mkArrow(0xf87171),dv=new THREE.Vector3(),pv=new THREE.Vector3(),tq=new THREE.Quaternion(),sky=new THREE.Color();
+const vlen=f=>14+26*Math.log10(1+f/200);
+function setArrow(g,x,y,len,pw,lab,txt){const on=len>3&&(x||y);g.visible=!!on;if(!on){lab.style.display='none';return}dv.set(x,y,0).normalize();const hl=Math.min(len*.5,pw*14),u=g.userData;
+ u.sh.scale.set(pw*1.4,len-hl,pw*1.4);u.hd.position.y=len-hl;u.hd.scale.set(pw*5,hl,pw*5);g.quaternion.setFromUnitVectors(YA,dv);place(lab,dv.x*len,dv.y*len,0,txt)}
+function place(el,x,y,z,txt){pv.set(x,y,z).project(cam);if(pv.z>1||pv.z<-1){el.style.display='none';return}el.style.display='block';el.style.left=((pv.x*.5+.5)*W+8)+'px';el.style.top=((-pv.y*.5+.5)*H-6)+'px';if(txt!==undefined)el.textContent=txt}
+// camera controls: drag = orbit, wheel = zoom (switches auto-zoom off)
+let drag=null;cv.onpointerdown=e=>{drag=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId);cv.style.cursor='grabbing'};
+cv.onpointermove=e=>{if(drag){cs.az-=(e.clientX-drag[0])*.006;cs.el=Math.max(-1.2,Math.min(1.5,cs.el+(e.clientY-drag[1])*.006));drag=[e.clientX,e.clientY]}};
+cv.onpointerup=cv.onpointercancel=()=>{drag=null;cv.style.cursor='grab'};
+cv.onwheel=e=>{e.preventDefault();view.az=false;$('az').checked=false;cs.d=Math.max(25,Math.min(4e7,cs.d*Math.exp(e.deltaY*.0012)))};
+$('az').onchange=e=>{view.az=e.target.checked};
+function draw(rdt){if(!rr)return;
+ const r=Math.hypot(S.x,S.y),alt=r-R,ux=S.x/r,uy=S.y/r,ex=uy,ey=-ux,sp=Math.hypot(S.vx,S.vy);
+ if(view.az){cs.tgt=Math.min(3e7,140+alt*3);cs.d=Math.exp(lerp(Math.log(cs.d),Math.log(cs.tgt),.06))}
+ cs.el=Math.max(cs.el,alt<4000?.02:-1.2);
+ const ce=Math.cos(cs.el),se=Math.sin(cs.el),ca=Math.cos(cs.az),sa=Math.sin(cs.az);
+ cam.position.set(cs.d*(ce*ca*ex+se*ux),cs.d*(ce*ca*ey+se*uy),cs.d*ce*sa);cam.up.set(ux,uy,0);cam.lookAt(0,0,0);
+ cam.near=Math.max(.3,cs.d*.006);cam.far=cs.d+3*R+2e6;cam.updateProjectionMatrix();cam.updateMatrixWorld();cam.matrixWorldInverse.copy(cam.matrixWorld).invert();
+ const cAlt=Math.hypot(S.x+cam.position.x,S.y+cam.position.y)-R,f=Math.max(0,Math.min(1,1-cAlt/90000));
+ sky.setRGB(lerp(3,90,f)/255,lerp(5,160,f)/255,lerp(14,230,f)/255);stM.opacity=Math.max(0,1-f*1.4);atm.material.uniforms.uF.value=Math.max(0,Math.min(1,(cAlt-15000)/50000));
+ earth.position.set(-S.x,-S.y,0);earth.scale.setScalar(R-24);atm.position.copy(earth.position);atm.scale.setScalar(R+110000);
+ pad.visible=alt<8000;if(pad.visible){pad.position.set(-S.x,R-S.y,0);gridM.material.opacity=disc.material.opacity=Math.max(0,Math.min(1,(6000-alt)/3000))}
+ // rocket pitches smoothly toward the commanded heading
+ tq.setFromUnitVectors(YA,dv.set(F.dx,F.dy,0).normalize());rk.quaternion.slerp(tq,1-Math.exp(-7*rdt));rk.scale.setScalar(Math.max(1,cs.d*.001));
+ const on=F.T>0,tf=F.T/9e5,wf=1+Math.min(2.2,Math.max(0,alt)/45000);fl.visible=on;plight.intensity=on?tf*2.5:0;
+ if(on){const fk=Math.pow(tf,.6);for(const c of cones){const u=c.userData,j=.9+.2*Math.random();c.scale.set(u.r*wf*j,u.l*fk*(.92+.16*Math.random()),u.r*wf*j)}fg.scale.setScalar(12+8*tf+Math.random()*3)}
+ // smoke puffs: emitted along the path while in the atmosphere, then fixed in the air
+ if(on&&alt<70000){const bx2=S.x-F.dx*26*rk.scale.x,by2=S.y-F.dy*26*rk.scale.x;if(sm.lx!==null){const n=Math.min(12,Math.ceil(Math.hypot(bx2-sm.lx,by2-sm.ly)/9)+1);for(let j=1;j<=n;j++)emit(lerp(sm.lx,bx2,j/n),lerp(sm.ly,by2,j/n))}sm.lx=bx2;sm.ly=by2}else sm.lx=null;
+ const pa=smG.attributes.position.array,ca3=smG.attributes.color.array;for(let i=0;i<NS;i++){sm.age[i]+=rdt;const t=sm.age[i]/sm.life[i],k=i*3;if(t>=1){ca3[k]=ca3[k+1]=ca3[k+2]=0;continue}const c=.5*Math.pow(1-t,1.3);pa[k]=sm.wx[i]-S.x;pa[k+1]=sm.wy[i]-S.y;pa[k+2]=sm.wz[i];ca3[k]=c;ca3[k+1]=c*.95;ca3[k+2]=c*.9}
+ smG.attributes.position.needsUpdate=smG.attributes.color.needsUpdate=true;
+ // flight trail
+ const n=S.trail.length,ta=trG.attributes.position.array;for(let i=0;i<n;i++){ta[i*3]=S.trail[i][0]-S.x;ta[i*3+1]=S.trail[i][1]-S.y;ta[i*3+2]=0}ta[n*3]=ta[n*3+1]=ta[n*3+2]=0;trG.setDrawRange(0,n+1);trG.attributes.position.needsUpdate=true;trL.visible=trP.visible=n>1;
+ // predicted orbit ring + apoapsis / periapsis markers
+ const o=elems(),show=sp>50&&o.e<.999&&S.phase!=='ended';orbL.visible=orbP.visible=sAp.visible=sPe.visible=show;
+ if(show){const p=o.h*o.h/GM,a=orbG.attributes.position.array;for(let i=0;i<=180;i++){const t=i/180*6.2832,q=p/(1+o.e*Math.cos(t-o.w));a[i*3]=q*Math.cos(t)-S.x;a[i*3+1]=q*Math.sin(t)-S.y;a[i*3+2]=0}orbG.attributes.position.needsUpdate=true;
+  const c=o.pe<0?0xf87171:0x7fd0ff;orbL.material.color.setHex(c);orbP.material.color.setHex(c);
+  const rp=p/(1+o.e),ra=p/(1-o.e),ms=cs.d*.04,px=rp*Math.cos(o.w)-S.x,py=rp*Math.sin(o.w)-S.y,ax=-ra*Math.cos(o.w)-S.x,ay=-ra*Math.sin(o.w)-S.y;
+  sPe.position.set(px,py,0);sAp.position.set(ax,ay,0);sPe.scale.set(ms,ms,1);sAp.scale.set(ms,ms,1);
+  place($('lPe'),px,py,0,'Pe '+fmt(o.pe/1000)+' km');place($('lAp'),ax,ay,0,'Ap '+fmt(o.ap/1000)+' km')}else{$('lPe').style.display=$('lAp').style.display='none'}
+ // 3D force vectors attached to the rocket
+ const vecOn=$('vec').checked;aT.visible=aG.visible=aD.visible=vecOn;
+ if(vecOn){const pw=cs.d*.0016;setArrow(aT,F.dx,F.dy,F.T>0?pw*vlen(F.T):0,pw,$('lT'),'Thrust');setArrow(aG,-ux,-uy,pw*vlen(F.Fg),pw,$('lG'),'Gravity');setArrow(aD,sp>0?-S.vx:0,sp>0?-S.vy:0,F.D>1?pw*vlen(F.D):0,pw,$('lD'),'Drag')}
+ else{$('lT').style.display=$('lG').style.display=$('lD').style.display='none'}
+ rr.setClearColor(sky,1);rr.clear();bgCam.quaternion.copy(cam.quaternion);rr.render(bgS,bgCam);rr.clearDepth();rr.render(sc,cam)}
+// UI
+const fmt=(v,d=0)=>v===null||v===undefined||isNaN(v)?'—':(+v).toLocaleString('en-US',{maximumFractionDigits:d});
+function ui(){const o=orb=elems(),r=o.r,alt=r-R,m=DRY+S.fuel,sp=Math.hypot(S.vx,S.vy),ke=.5*m*sp*sp,pe=m*GM*(1/R-1/r);
+ hMaxKE=Math.max(hMaxKE,ke);hMaxPE=Math.max(hMaxPE,pe);$('ke').style.width=100*ke/hMaxKE+'%';$('pe').style.width=100*pe/hMaxPE+'%';
+ $('hud').innerHTML=`Altitude <b>${fmt(alt/1000,1)} km</b> · Speed <b>${fmt(sp)} m/s</b> · Fuel <b>${fmt(100*S.fuel/Math.max(1,P.fuel))}%</b> · T+${fmt(S.t)} s`+(S.phase==='ended'?` · <b style="color:#fbbf24">${S.fin}</b>`:'');
+ mis();
+ if(mode==='ps'){const net=F.fx*S.x/r+F.fy*S.y/r;$('hint').textContent=S.phase==='pad'?'Thrust must be bigger than gravity (weight) to lift off.':S.phase==='ended'?'Flight over. Press Reset and change one thing at a time.':F.T===0?(S.fuel<=0?'Out of fuel! With no thrust, only gravity (and drag) act on the rocket.':'Engine off: the rocket keeps moving (Newton’s 1st Law) while gravity pulls it back.'):(net>0?'Thrust is bigger than gravity, so the rocket speeds up.':'Gravity is winning: not enough net upward force.')}
+ else{const ur=S.x/r,uy=S.y/r,vr=S.vx*ur+S.vy*uy,vt=-S.vx*uy+S.vy*ur,net=Math.hypot(F.fx,F.fy);$('kev').textContent=fmt(ke/1e6,1)+' MJ';$('pev').textContent=fmt(pe/1e6,1)+' MJ';
+ const rows=[['Altitude',fmt(alt/1000,2)+' km'],['Speed',fmt(sp,1)+' m/s'],['Vx / Vy (inertial)',fmt(S.vx)+' / '+fmt(S.vy)+' m/s'],['V radial / tangential',fmt(vr)+' / '+fmt(vt)+' m/s'],['Thrust',fmt(F.T/1000)+' kN'],['Gravity (weight)',fmt(F.Fg/1000,1)+' kN'],['Drag',fmt(F.D,0)+' N'],['Net force',fmt(net,0)+' N'],['Acceleration',fmt(net/m/G0,2)+' g'],['Mass',fmt(m)+' kg'],['Circular orbital v',fmt(o.vc)+' m/s'],['Eccentricity',sp>1?fmt(o.e,4):'—'],['Apoapsis',o.ap!==null&&sp>1?fmt(o.ap/1000,1)+' km':'—'],['Periapsis',o.pe!==null&&sp>1?fmt(o.pe/1000,1)+' km':'—']];
+ $('tel').innerHTML=rows.map(r=>`<span>${r[0]}</span><span>${r[1]}</span>`).join('');}}
+function graph(id,i,col){const c=$(id),g=c.getContext('2d'),w=c.width=c.clientWidth,h=c.height=c.clientHeight,d=S.h;g.clearRect(0,0,w,h);if(d.length<2)return;
+ const t0=d[0][0],t1=d[d.length-1][0],mx=Math.max(1e-9,...d.map(q=>q[i]));g.strokeStyle=col;g.lineWidth=2;g.beginPath();d.forEach((q,k)=>{const x=(q[0]-t0)/Math.max(1,t1-t0)*(w-4)+2,y=h-3-q[i]/mx*(h-14);k?g.lineTo(x,y):g.moveTo(x,y)});g.stroke();g.fillStyle='#9aa6d6';g.font='10px system-ui';g.fillText('max '+fmt(mx,1),4,10)}
+// loop
+let last=performance.now(),acc=0,fr=0;
+function loop(now){const rdt=Math.min(.05,(now-last)/1000);last=now;
+ if(S.phase!=='ended'){acc+=rdt*(+$('warp').value);let n=0;while(acc>=DT&&n<40){step(DT);acc-=DT;n++}if(acc>DT*40)acc=0}
+ draw(rdt);if(++fr%6===0){ui();if(mode==='hon'){graph('g1',1,'#5ab0ff');graph('g2',2,'#fb923c')}}requestAnimationFrame(loop)}
+// report
+const QS={ps:['1. Compare thrust and gravity at liftoff. What had to be true for your rocket to leave the pad?','2. What happened to the rocket’s acceleration as fuel burned? Explain using F = ma.','3. Why does a rocket in orbit keep falling around Earth without hitting it? Use your data.'],
+ hon:['1. Using Newton’s Second Law with changing mass, explain the acceleration you measured while fuel burned. Cite telemetry values.','2. Estimate gravity losses and drag losses for your best trial. How did pitch timing change your efficiency?','3. Relate your final periapsis speed, the circular orbital speed and your eccentricity. Is your orbit stable? Why?']};
+function save(k,v){try{localStorage.setItem(k,v)}catch(e){}}function load(k){try{return localStorage.getItem(k)||''}catch(e){return''}}
+function openRep(){logTrial();$('nm').value=load('nm');$('tc').value=load('tc');$('pd').value=load('pd');
+ const hd=['#','Mode','Thrust kN','Fuel kg','Pitch°','Max alt km','Max v m/s','Peri km','Apo km','Time s','Outcome'];
+ $('tt').innerHTML='<tr>'+hd.map(h=>`<th>${h}</th>`).join('')+'</tr>'+(trials.length?trials.map(t=>'<tr>'+rowv(t).map(v=>`<td>${v}</td>`).join('')+'</tr>').join(''):'<tr><td colspan="11">No trials yet. Launch, fly, then Reset or land to record a trial.</td></tr>');
+ const old=[...document.querySelectorAll('#qs textarea')].map(t=>t.value);
+ $('qs').innerHTML=QS[mode].map((q,i)=>`<div>${q}<textarea rows="3" data-i="${i}">${old[i]||''}</textarea></div>`).join('');$('msg').textContent='';$('modal').classList.add('on')}
+const rowv=t=>[t.n,t.mode,t.thrust,t.fuel,t.pitch0+'→'+t.pitch1,t.maxAlt,t.maxV,t.peri,t.apo,t.t,t.out];
+$('rep').onclick=openRep;$('cl').onclick=()=>$('modal').classList.remove('on');
+const info=()=>{const i={nm:$('nm').value.trim(),tc:$('tc').value.trim(),pd:$('pd').value.trim()};save('nm',i.nm);save('tc',i.tc);save('pd',i.pd);return i};
+const ans=()=>[...document.querySelectorAll('#qs textarea')].map(t=>t.value.trim());
+async function out(name,data){try{const d=await claude.use('downloads');if(!d){$('msg').textContent='Downloads are unavailable in this view.';return}await d.save({filename:name,data});$('msg').textContent='Saved.'}catch(e){$('msg').textContent=e&&e.code==='declined'?'Save cancelled.':'Could not save: '+(e&&e.message||e)}}
+const fn=i=>(i.nm||'student').replace(/[^\w-]+/g,'_')+'_rocketry_lab';
+$('csv').onclick=()=>{const i=info(),q=s=>'"'+String(s).replace(/"/g,'""')+'"',L=[['Rocketry, Forces & Orbital Motion - Lab Report'],['Name',i.nm],['Teacher',i.tc],['Class Period',i.pd],['Date',new Date().toLocaleDateString()],[],['Trial','Mode','Thrust (kN)','Fuel (kg)','Pitch start->end (deg)','Max altitude (km)','Max speed (m/s)','Periapsis (km)','Apoapsis (km)','Flight time (s)','Outcome'],...trials.map(rowv),[],...QS[mode].map((x,k)=>[x,ans()[k]])];
+ out(fn(i)+'.csv',L.map(r=>r.map(q).join(',')).join('\n'))};
+$('pdf').onclick=()=>{const i=info();if(!window.jspdf){$('msg').textContent='PDF library failed to load. Use CSV export.';return}
+ const d=new jspdf.jsPDF({unit:'pt',format:'letter'});let y=54;const L=54,pw=504;const ln=(t,sz=10,b=0)=>{d.setFont('helvetica',b?'bold':'normal');d.setFontSize(sz);for(const l of d.splitTextToSize(String(t),pw)){if(y>740){d.addPage();y=54}d.text(l,L,y);y+=sz+4}};
+ ln('Rocketry, Forces & Orbital Motion - Lab Report',16,1);y+=4;ln('Name: '+(i.nm||'-')+'     Teacher: '+(i.tc||'-')+'     Period: '+(i.pd||'-'),11);ln('Date: '+new Date().toLocaleDateString()+'     Mode: '+(mode==='ps'?'Physical Science':'Honors Physics'),11);y+=8;ln('Trial data',13,1);
+ ln('# | Thrust kN | Fuel kg | Pitch | MaxAlt km | MaxV m/s | Peri km | Apo km | Time s | Outcome',8,1);trials.forEach(t=>ln([t.n,t.thrust,t.fuel,t.pitch0+'>'+t.pitch1,t.maxAlt,t.maxV,t.peri,t.apo,t.t,t.out].join(' | '),8));if(!trials.length)ln('No trials recorded.');y+=8;
+ ln('Reflection questions',13,1);QS[mode].forEach((q,k)=>{y+=4;ln(q,10,1);ln(ans()[k]||'(no answer)',10)});out(fn(i)+'.pdf',d.output('blob'))};
+// init
+const MODS=[null,{i:'🎯',n:'Projectile Trajectories',d:'Launch, aim and tune projectiles with and without air drag. Compare Physical Science visual vectors with Honors component equations and live graphs.',s:'<b>NGSS:</b> HS-PS2-1 (Newton’s Second Law), HS-PS2-4 (gravitational forces)'},{i:'🎢',n:'Energy Conservation',d:'Track kinetic, potential and thermal energy on tracks, pendulums and orbits, from color-coded bars to full energy-vs-time graphs.',s:'<b>NGSS:</b> HS-PS3-1 (computational energy models), HS-PS3-2 (energy as motion and position)'},{i:'🛰️',n:'Momentum & Docking',d:'Plan a spacecraft docking maneuver using conservation of momentum, impulse and collisions, with guided missions and quantitative telemetry.',s:'<b>NGSS:</b> HS-PS2-2 (conservation of momentum), HS-PS2-1 (Newton’s Second Law)'}];
+let soonFrom=null;
+function closeSoon(){$('soon').classList.remove('on');if(soonFrom)soonFrom.focus()}
+$('nav').onclick=e=>{const b=e.target.closest('button.tab');if(!b)return;const m=MODS[+b.dataset.i];if(!m)return;soonFrom=b;$('si').textContent=m.i;$('sn').textContent=m.n;$('sd').textContent=m.d;$('ss').innerHTML=m.s;$('soon').classList.add('on');$('sx').focus()};
+$('sx').onclick=closeSoon;$('soon').onclick=e=>{if(e.target===$('soon'))closeSoon()};addEventListener('keydown',e=>{if(e.key==='Escape'&&$('soon').classList.contains('on'))closeSoon()});
+$('go').title='Space';reset();setMode('ps');requestAnimationFrame(loop);
+</script></body></html>
